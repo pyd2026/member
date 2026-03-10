@@ -15,6 +15,21 @@ margin:0;
 padding:15px;
 }
 
+.header{
+text-align:center;
+margin-bottom:15px;
+}
+
+.logo{
+width:90px;
+margin-bottom:5px;
+}
+
+.headerTitle{
+font-size:24px;
+font-weight:bold;
+}
+
 .container{
 background:white;
 padding:15px;
@@ -87,10 +102,27 @@ color:#e91e63;
 margin-top:10px;
 }
 
+.footer{
+text-align:center;
+margin-top:15px;
+font-size:13px;
+color:#555;
+}
+
 </style>
 </head>
 
 <body>
+
+
+<div class="header">
+
+<img class="logo" src="https://drive.google.com/uc?export=view&id=13ZZCkPxOYD3aBMyOAehdarcuQnWSJ6YJ">
+
+<div class="headerTitle">Headquarters</div>
+
+</div>
+
 
 
 <div class="container" id="loginPage">
@@ -133,6 +165,11 @@ margin-top:10px;
 </div>
 
 
+<div class="footer">
+Database maintained by Headquarter
+</div>
+
+
 
 <script>
 
@@ -149,8 +186,6 @@ const users={
 const scriptURL="https://script.google.com/macros/s/AKfycbywOPiE2kfSxmjCgbGectwKy0fHoDRMKjRjcvFPu-1GUF8U9WG84_uw42zYKjoh5snHbQ/exec";
 
 let currentUser="";
-
-
 
 function login(){
 
@@ -176,8 +211,6 @@ alert("Invalid Login");
 
 }
 
-
-
 function addRow(name="",des="",fromDB=false){
 
 let table=document.getElementById("tableBody");
@@ -199,8 +232,6 @@ table.insertAdjacentHTML("beforeend",row);
 
 }
 
-
-
 function editRow(btn){
 
 let row=btn.parentElement.parentElement;
@@ -209,8 +240,6 @@ row.cells[1].children[0].disabled=false;
 row.cells[2].children[0].disabled=false;
 
 }
-
-
 
 function loadData(){
 
@@ -241,8 +270,6 @@ document.getElementById("loading").style.display="none";
 });
 
 }
-
-
 
 function saveData(){
 
