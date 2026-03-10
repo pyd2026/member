@@ -2,39 +2,65 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Member List</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Member Form</title>
 
 <style>
 
 body{
 font-family:Arial;
-background:#f3f3f3;
-padding:20px;
+background:#f2f2f2;
+margin:0;
+padding:15px;
 }
 
 .container{
-max-width:600px;
-margin:auto;
 background:white;
-padding:20px;
+padding:15px;
 border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.2);
+box-shadow:0 2px 10px rgba(0,0,0,0.2);
+max-width:500px;
+margin:auto;
 }
 
 h2{
 text-align:center;
+margin-bottom:15px;
 }
 
 input{
-padding:8px;
-margin:5px;
-width:90%;
+width:100%;
+padding:10px;
+margin-top:5px;
+margin-bottom:10px;
+border:1px solid #ccc;
+border-radius:5px;
+font-size:16px;
 }
 
 button{
-padding:8px 15px;
-margin:5px;
-cursor:pointer;
+width:100%;
+padding:12px;
+border:none;
+border-radius:6px;
+font-size:16px;
+margin-top:8px;
+}
+
+.loginBtn{
+background:#2196F3;
+color:white;
+}
+
+.addBtn{
+background:#4CAF50;
+color:white;
+}
+
+.saveBtn{
+background:#FF9800;
+color:white;
 }
 
 table{
@@ -44,24 +70,24 @@ margin-top:10px;
 }
 
 th,td{
-border:1px solid #ccc;
+border:1px solid #ddd;
 padding:6px;
+font-size:14px;
 text-align:center;
 }
 
-.plus{
-background:green;
-color:white;
+td input{
+width:95%;
+padding:6px;
+font-size:14px;
 }
 
-.save{
-background:blue;
-color:white;
-}
-
-.edit{
-background:orange;
-color:white;
+#loading{
+display:none;
+text-align:center;
+font-weight:bold;
+color:#e91e63;
+margin-top:10px;
 }
 
 </style>
@@ -69,31 +95,36 @@ color:white;
 
 <body>
 
+
+<!-- LOGIN PAGE -->
+
 <div class="container" id="loginPage">
 
 <h2>Member Login</h2>
 
-<input id="username" placeholder="Username"><br>
-<input id="password" type="password" placeholder="PIN"><br>
+<input id="username" placeholder="Username">
 
-<button onclick="login()">Login</button>
+<input id="password" type="password" placeholder="PIN">
+
+<button class="loginBtn" onclick="login()">Login</button>
 
 </div>
 
 
 
+<!-- FORM PAGE -->
+
 <div class="container" id="formPage" style="display:none">
 
 <h2 id="loggedUser"></h2>
 
-<table id="memberTable">
+<table>
 
 <thead>
 <tr>
-<th>Sl No</th>
+<th>Sl</th>
 <th>Name</th>
 <th>Designation</th>
-<th>Edit</th>
 </tr>
 </thead>
 
@@ -101,8 +132,11 @@ color:white;
 
 </table>
 
-<button class="plus" onclick="addRow()">+ Add Member</button>
-<button class="save" onclick="saveData()">Save</button>
+<button class="addBtn" onclick="addRow()">+ Add Member</button>
+
+<button class="saveBtn" onclick="saveData()">Save</button>
+
+<div id="loading">Processing... Please wait</div>
 
 </div>
 
@@ -110,7 +144,7 @@ color:white;
 
 <script>
 
-const users = {
+const users={
 "John":"1111",
 "Adam":"2222",
 "James":"3333",
@@ -120,14 +154,16 @@ const users = {
 "Nick":"7777"
 };
 
-const scriptURL="https://script.google.com/macros/s/AKfycbzrNIOSSP1wymjOGb9FCvtQIawKju1k51vFwz-1545-gXIB1PbYcs1FzoM8gHswuxcB3w/exec";
+const scriptURL="https://script.google.com/macros/s/AKfycbywOPiE2kfSxmjCgbGectwKy0fHoDRMKjRjcvFPu-1GUF8U9WG84_uw42zYKjoh5snHbQ/exec";
 
 let currentUser="";
 
+
+
 function login(){
 
-let u=document.getElementById("username").value;
-let p=document.getElementById("password").value;
+let u=document.getElementById("username").value.trim();
+let p=document.getElementById("password").value.trim();
 
 if(users[u] && users[u]==p){
 
@@ -142,7 +178,7 @@ loadData();
 
 }else{
 
-alert("Invalid login");
+alert("Invalid Login");
 
 }
 
@@ -153,47 +189,18 @@ alert("Invalid login");
 function addRow(name="",des=""){
 
 let table=document.getElementById("tableBody");
-let rowCount=table.rows.length+1;
+
+let sl=table.rows.length+1;
 
 let row=`
 <tr>
-<td>${rowCount}</td>
+<td>${sl}</td>
 <td><input value="${name}"></td>
 <td><input value="${des}"></td>
-<td><button class="edit">Edit</button></td>
 </tr>
 `;
 
-table.innerHTML+=row;
-
-}
-
-
-
-function saveData(){
-
-let rows=[];
-let table=document.getElementById("tableBody").rows;
-
-for(let i=0;i<table.length;i++){
-
-let sl=i+1;
-let name=table[i].cells[1].children[0].value;
-let des=table[i].cells[2].children[0].value;
-
-rows.push({sl:sl,name:name,des:des});
-
-}
-
-fetch(scriptURL,{
-method:"POST",
-body:JSON.stringify({
-user:currentUser,
-rows:rows
-})
-})
-.then(res=>res.text())
-.then(d=>alert("Saved Successfully"));
+table.insertAdjacentHTML("beforeend",row);
 
 }
 
@@ -207,15 +214,77 @@ fetch(scriptURL+"?user="+currentUser)
 
 .then(data=>{
 
+if(data.length>0){
+
 data.forEach(r=>{
 
 addRow(r[1],r[2]);
 
 });
 
+}
+
 });
 
 }
+
+
+
+function saveData(){
+
+document.getElementById("loading").style.display="block";
+
+let rows=[];
+
+let table=document.getElementById("tableBody").rows;
+
+for(let i=0;i<table.length;i++){
+
+let name=table[i].cells[1].children[0].value;
+
+let des=table[i].cells[2].children[0].value;
+
+rows.push({
+
+sl:i+1,
+
+name:name,
+
+des:des
+
+});
+
+}
+
+
+
+fetch(scriptURL,{
+
+method:"POST",
+
+body:JSON.stringify({
+
+user:currentUser,
+
+rows:rows
+
+})
+
+})
+
+.then(res=>res.text())
+
+.then(data=>{
+
+document.getElementById("loading").style.display="none";
+
+alert("Saved Successfully");
+
+});
+
+}
+
+
 
 </script>
 
