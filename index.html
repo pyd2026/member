@@ -214,6 +214,8 @@ row.cells[2].children[0].disabled=false;
 
 function loadData(){
 
+document.getElementById("loading").style.display="block";
+
 fetch(scriptURL+"?user="+currentUser)
 
 .then(res=>res.json())
@@ -227,6 +229,14 @@ addRow(r[1],r[2],true);
 });
 
 }
+
+document.getElementById("loading").style.display="none";
+
+})
+
+.catch(()=>{
+
+document.getElementById("loading").style.display="none";
 
 });
 
@@ -267,6 +277,12 @@ rows:rows
 
 document.getElementById("loading").style.display="none";
 alert("Saved Successfully");
+
+})
+
+.catch(()=>{
+
+document.getElementById("loading").style.display="none";
 
 });
 
