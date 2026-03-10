@@ -48,26 +48,16 @@ font-size:16px;
 margin-top:8px;
 }
 
-.loginBtn{
-background:#2196F3;
-color:white;
-}
-
-.addBtn{
-background:#4CAF50;
-color:white;
-}
-
-.saveBtn{
-background:#FF9800;
-color:white;
-}
+.loginBtn{background:#2196F3;color:white;}
+.addBtn{background:#4CAF50;color:white;}
+.saveBtn{background:#FF9800;color:white;}
 
 .editBtn{
 background:#9C27B0;
 color:white;
 padding:5px 8px;
 font-size:12px;
+width:auto;
 }
 
 table{
@@ -108,7 +98,6 @@ margin-top:10px;
 <h2>Member Login</h2>
 
 <input id="username" placeholder="Username">
-
 <input id="password" type="password" placeholder="PIN">
 
 <button class="loginBtn" onclick="login()">Login</button>
@@ -137,7 +126,6 @@ margin-top:10px;
 </table>
 
 <button class="addBtn" onclick="addRow()">+ Add Member</button>
-
 <button class="saveBtn" onclick="saveData()">Save</button>
 
 <div id="loading">Processing... Please wait</div>
@@ -161,6 +149,7 @@ const users={
 const scriptURL="https://script.google.com/macros/s/AKfycbywOPiE2kfSxmjCgbGectwKy0fHoDRMKjRjcvFPu-1GUF8U9WG84_uw42zYKjoh5snHbQ/exec";
 
 let currentUser="";
+
 
 
 function login(){
@@ -189,18 +178,20 @@ alert("Invalid Login");
 
 
 
-function addRow(name="",des=""){
+function addRow(name="",des="",fromDB=false){
 
 let table=document.getElementById("tableBody");
-
 let sl=table.rows.length+1;
+
+let disabled = fromDB ? "disabled" : "";
+let editBtn = fromDB ? `<button class="editBtn" onclick="editRow(this)">Edit</button>` : "";
 
 let row=`
 <tr>
 <td>${sl}</td>
-<td><input value="${name}" disabled></td>
-<td><input value="${des}" disabled></td>
-<td><button class="editBtn" onclick="editRow(this)">Edit</button></td>
+<td><input value="${name}" ${disabled}></td>
+<td><input value="${des}" ${disabled}></td>
+<td>${editBtn}</td>
 </tr>
 `;
 
@@ -232,9 +223,7 @@ fetch(scriptURL+"?user="+currentUser)
 if(data.length>0){
 
 data.forEach(r=>{
-
-addRow(r[1],r[2]);
-
+addRow(r[1],r[2],true);
 });
 
 }
@@ -250,49 +239,33 @@ function saveData(){
 document.getElementById("loading").style.display="block";
 
 let rows=[];
-
 let table=document.getElementById("tableBody").rows;
 
 for(let i=0;i<table.length;i++){
 
 let name=table[i].cells[1].children[0].value;
-
 let des=table[i].cells[2].children[0].value;
 
 rows.push({
-
 sl:i+1,
-
 name:name,
-
 des:des
-
 });
 
 }
 
-
-
 fetch(scriptURL,{
-
 method:"POST",
-
 body:JSON.stringify({
-
 user:currentUser,
-
 rows:rows
-
 })
-
 })
 
 .then(res=>res.text())
-
 .then(data=>{
 
 document.getElementById("loading").style.display="none";
-
 alert("Saved Successfully");
 
 });
