@@ -63,6 +63,13 @@ background:#FF9800;
 color:white;
 }
 
+.editBtn{
+background:#9C27B0;
+color:white;
+padding:5px 8px;
+font-size:12px;
+}
+
 table{
 width:100%;
 border-collapse:collapse;
@@ -96,8 +103,6 @@ margin-top:10px;
 <body>
 
 
-<!-- LOGIN PAGE -->
-
 <div class="container" id="loginPage">
 
 <h2>Member Login</h2>
@@ -112,8 +117,6 @@ margin-top:10px;
 
 
 
-<!-- FORM PAGE -->
-
 <div class="container" id="formPage" style="display:none">
 
 <h2 id="loggedUser"></h2>
@@ -125,6 +128,7 @@ margin-top:10px;
 <th>Sl</th>
 <th>Name</th>
 <th>Designation</th>
+<th>Edit</th>
 </tr>
 </thead>
 
@@ -157,7 +161,6 @@ const users={
 const scriptURL="https://script.google.com/macros/s/AKfycbywOPiE2kfSxmjCgbGectwKy0fHoDRMKjRjcvFPu-1GUF8U9WG84_uw42zYKjoh5snHbQ/exec";
 
 let currentUser="";
-
 
 
 function login(){
@@ -195,12 +198,24 @@ let sl=table.rows.length+1;
 let row=`
 <tr>
 <td>${sl}</td>
-<td><input value="${name}"></td>
-<td><input value="${des}"></td>
+<td><input value="${name}" disabled></td>
+<td><input value="${des}" disabled></td>
+<td><button class="editBtn" onclick="editRow(this)">Edit</button></td>
 </tr>
 `;
 
 table.insertAdjacentHTML("beforeend",row);
+
+}
+
+
+
+function editRow(btn){
+
+let row=btn.parentElement.parentElement;
+
+row.cells[1].children[0].disabled=false;
+row.cells[2].children[0].disabled=false;
 
 }
 
@@ -283,8 +298,6 @@ alert("Saved Successfully");
 });
 
 }
-
-
 
 </script>
 
