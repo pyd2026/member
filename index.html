@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+    .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+    .hidden { display: none; }
+    h2 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+    input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    .btn-login { background: #007bff; color: white; }
+    .btn-add { background: #28a745; color: white; width: auto; padding: 5px 15px; }
+    .btn-save { background: #ffc107; color: #212529; }
+    .member-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #f9f9f9; padding: 10px; border-radius: 4px; }
+    .sl-no { font-weight: bold; min-width: 30px; }
+  </style>
+</head>
+<body>
+
+<div class="container" id="loginBox">
+  <h2>Login</h2>
+  <input type="text" id="username" placeholder="Username (e.g., John)">
+  <input type="password" id="password" placeholder="Password (e.g., 1111)">
+  <button class="btn-login" onclick="login()">Login</button>
+</div>
+
+<div class="container hidden" id="formBox">
+  <h2 id="displayUser"></h2>
+  <div id="memberContainer">
+    </div>
+  <button class="btn-add" onclick="addRow()">+ Add Member</button>
+  <button class="btn-save" onclick="saveData()">Save to Google Sheet</button>
+</div>
+
+<script>
+  const users = { "John":"1111", "Adam":"2222", "James":"3333", "Rose":"4444", "Lily":"5555", "Lucy":"6666", "Nick":"7777" };
+  let currentUser = "";
+  let slCount = 1;
+
+  function login() {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    if (users[user] && users[user] === pass) {
+      currentUser = user;
+      document.getElementById('loginBox').classList.add('hidden');
+      document.getElementById('formBox').classList.remove('hidden');
+      document.getElementById('displayUser').innerText = "User: " + currentUser.toUpperCase();
+      addRow();
+    } else {
+      alert("Invalid Credentials");
+    }
+  }
+
+  function addRow() {
+    const container = document.getElementById('memberContainer');
+    const div = document.createElement('div');
+    div.className = 'member-row';
+    div.innerHTML = `
+      <span class="sl-no">${slCount}</span>
+      <input type="text" class="m-name" placeholder="Name">
+      <input type="text" class="m-desig" placeholder="Designation">
+    `;
+    container.appendChild(div);
+    slCount++;
+  }
+
+  function saveData() {
+    const names = document.querySelectorAll('.m-name');
+    const desigs = document.querySelectorAll('.m-desig');
+    const data = { currentUser: currentUser, members: [] };
+
+    names.forEach((el, index) => {
+      if(el.value) {
+        data.members.push({
+          sl: index + 1,
+          name: el.value,
+          designation: desigs[index].value
+        });
+      }
+    });
+
+    if(data.members.length === 0) return alert("Add at least one member");
+
+    google.script.run.withSuccessHandler(res => {
+      alert(res);
+      location.reload(); // Refresh after save
+    }).processData(data);
+  }
+</script>
+
+</body>
+</html>
