@@ -1,89 +1,223 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: sans-serif; padding: 15px; background: #f4f4f4; }
-    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
-    button { width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; }
-    .btn-login { background: #007bff; color: white; }
-    .btn-add { background: #28a745; color: white; }
-    .btn-save { background: #ffc107; color: black; }
-    .hidden { display: none; }
-    .row-box { background: #eee; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
-    #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.8); display:none; justify-content:center; align-items:center; z-index:99; }
-  </style>
+<meta charset="UTF-8">
+<title>Member List</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f3f3f3;
+padding:20px;
+}
+
+.container{
+max-width:600px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+h2{
+text-align:center;
+}
+
+input{
+padding:8px;
+margin:5px;
+width:90%;
+}
+
+button{
+padding:8px 15px;
+margin:5px;
+cursor:pointer;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+th,td{
+border:1px solid #ccc;
+padding:6px;
+text-align:center;
+}
+
+.plus{
+background:green;
+color:white;
+}
+
+.save{
+background:blue;
+color:white;
+}
+
+.edit{
+background:orange;
+color:white;
+}
+
+</style>
 </head>
+
 <body>
 
-<div id="overlay"><b>SAVING DATA... PLEASE WAIT</b></div>
+<div class="container" id="loginPage">
 
-<div class="card" id="loginDiv">
-  <h2>Login</h2>
-  <input type="text" id="u" placeholder="Username (e.g. John)">
-  <input type="password" id="p" placeholder="Password (e.g. 1111)">
-  <button class="btn-login" onclick="doLogin()">Login</button>
+<h2>Member Login</h2>
+
+<input id="username" placeholder="Username"><br>
+<input id="password" type="password" placeholder="PIN"><br>
+
+<button onclick="login()">Login</button>
+
 </div>
 
-<div class="card hidden" id="formDiv">
-  <h2 id="userTitle"></h2>
-  <div id="list"></div>
-  <button class="btn-add" onclick="addRow()">+ Add Row</button>
-  <button class="btn-save" onclick="save()">Save to Database</button>
+
+
+<div class="container" id="formPage" style="display:none">
+
+<h2 id="loggedUser"></h2>
+
+<table id="memberTable">
+
+<thead>
+<tr>
+<th>Sl No</th>
+<th>Name</th>
+<th>Designation</th>
+<th>Edit</th>
+</tr>
+</thead>
+
+<tbody id="tableBody"></tbody>
+
+</table>
+
+<button class="plus" onclick="addRow()">+ Add Member</button>
+<button class="save" onclick="saveData()">Save</button>
+
 </div>
+
+
 
 <script>
-  const users = {"John":"1111","Adam":"2222","James":"3333","Rose":"4444","Lily":"5555","Lucy":"6666","Nick":"7777"};
-  let user = "";
-  let count = 0;
 
-  function doLogin() {
-    let name = document.getElementById('u').value;
-    let pass = document.getElementById('p').value;
-    if(users[name] && users[name] === pass) {
-      user = name;
-      document.getElementById('loginDiv').classList.add('hidden');
-      document.getElementById('formDiv').classList.remove('hidden');
-      document.getElementById('userTitle').innerText = user.toUpperCase();
-      addRow();
-    } else { alert("Wrong Login"); }
-  }
+const users = {
+"John":"1111",
+"Adam":"2222",
+"James":"3333",
+"Rose":"4444",
+"Lily":"5555",
+"Lucy":"6666",
+"Nick":"7777"
+};
 
-  function addRow() {
-    count++;
-    let div = document.createElement('div');
-    div.className = 'row-box';
-    div.innerHTML = `<b>Sl: ${count}</b><input type="text" class="n" placeholder="Name"><input type="text" class="d" placeholder="Designation">`;
-    document.getElementById('list').appendChild(div);
-  }
+const scriptURL="YOUR_WEBAPP_URL";
 
-  function save() {
-    let names = document.querySelectorAll('.n');
-    let desigs = document.querySelectorAll('.d');
-    let rows = [];
-    
-    names.forEach((item, i) => {
-      if(item.value) rows.push({sl: i+1, name: item.value, designation: desigs[i].value});
-    });
+let currentUser="";
 
-    if(rows.length === 0) return alert("Enter at least one name");
+function login(){
 
-    document.getElementById('overlay').style.display = "flex";
+let u=document.getElementById("username").value;
+let p=document.getElementById("password").value;
 
-    // CALLING THE BACKEND
-    google.script.run
-      .withSuccessHandler(msg => {
-        document.getElementById('overlay').style.display = "none";
-        alert(msg);
-        location.reload();
-      })
-      .withFailureHandler(err => {
-        document.getElementById('overlay').style.display = "none";
-        alert("CRITICAL ERROR: " + err.message);
-      })
-      .processData({currentUser: user, members: rows});
-  }
+if(users[u] && users[u]==p){
+
+currentUser=u;
+
+document.getElementById("loginPage").style.display="none";
+document.getElementById("formPage").style.display="block";
+
+document.getElementById("loggedUser").innerHTML="LOGGED USER : "+u;
+
+loadData();
+
+}else{
+
+alert("Invalid login");
+
+}
+
+}
+
+
+
+function addRow(name="",des=""){
+
+let table=document.getElementById("tableBody");
+let rowCount=table.rows.length+1;
+
+let row=`
+<tr>
+<td>${rowCount}</td>
+<td><input value="${name}"></td>
+<td><input value="${des}"></td>
+<td><button class="edit">Edit</button></td>
+</tr>
+`;
+
+table.innerHTML+=row;
+
+}
+
+
+
+function saveData(){
+
+let rows=[];
+let table=document.getElementById("tableBody").rows;
+
+for(let i=0;i<table.length;i++){
+
+let sl=i+1;
+let name=table[i].cells[1].children[0].value;
+let des=table[i].cells[2].children[0].value;
+
+rows.push({sl:sl,name:name,des:des});
+
+}
+
+fetch(scriptURL,{
+method:"POST",
+body:JSON.stringify({
+user:currentUser,
+rows:rows
+})
+})
+.then(res=>res.text())
+.then(d=>alert("Saved Successfully"));
+
+}
+
+
+
+function loadData(){
+
+fetch(scriptURL+"?user="+currentUser)
+
+.then(res=>res.json())
+
+.then(data=>{
+
+data.forEach(r=>{
+
+addRow(r[1],r[2]);
+
+});
+
+});
+
+}
+
 </script>
+
 </body>
 </html>
