@@ -1,199 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Member Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* Mobile-First Reset */
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f0f2f5;
-      color: #1c1e21;
-      line-height: 1.5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    .app-container {
-      width: 100%;
-      max-width: 480px; /* Standard Mobile Width */
-      padding: 16px;
-    }
-
-    .card {
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-      margin-bottom: 20px;
-    }
-
-    h2 { font-size: 1.25rem; margin-bottom: 20px; text-align: center; color: #007bff; text-transform: uppercase; letter-spacing: 1px; }
+    body { font-family: sans-serif; padding: 15px; background: #f4f4f4; }
+    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; }
+    .btn-login { background: #007bff; color: white; }
+    .btn-add { background: #28a745; color: white; }
+    .btn-save { background: #ffc107; color: black; }
     .hidden { display: none; }
-
-    /* Inputs & Buttons */
-    input {
-      width: 100%;
-      padding: 12px 16px;
-      margin-bottom: 12px;
-      border: 1px solid #dddfe2;
-      border-radius: 8px;
-      font-size: 16px; /* Prevents iOS zoom on focus */
-      background: #f5f6f7;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-
-    .btn-primary { background: #007bff; color: white; }
-    .btn-add { background: #28a745; color: white; margin-top: 10px; }
-    .btn-save { background: #ffc107; color: #000; margin-top: 15px; }
-    button:active { opacity: 0.7; }
-
-    /* Member List Styling */
-    .row-card {
-      background: #f8f9fa;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      border-left: 4px solid #007bff;
-      position: relative;
-    }
-
-    .row-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      font-weight: bold;
-      color: #65676b;
-      margin-bottom: 8px;
-    }
-
-    .input-group { display: flex; flex-direction: column; gap: 8px; }
-    .input-group input { margin-bottom: 0; background: #fff; }
-
-    #loading {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255,255,255,0.8);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      font-weight: bold;
-    }
+    .row-box { background: #eee; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+    #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.8); display:none; justify-content:center; align-items:center; z-index:99; }
   </style>
 </head>
 <body>
 
-<div id="loading">Processing...</div>
+<div id="overlay"><b>SAVING DATA... PLEASE WAIT</b></div>
 
-<div class="app-container">
-  <div class="card" id="loginSection">
-    <h2>Member Login</h2>
-    <input type="text" id="userInp" placeholder="Name (e.g. John)" autofocus>
-    <input type="password" id="passInp" placeholder="Code (e.g. 1111)">
-    <button class="btn-primary" onclick="handleLogin()">Login</button>
-  </div>
+<div class="card" id="loginDiv">
+  <h2>Login</h2>
+  <input type="text" id="u" placeholder="Username (e.g. John)">
+  <input type="password" id="p" placeholder="Password (e.g. 1111)">
+  <button class="btn-login" onclick="doLogin()">Login</button>
+</div>
 
-  <div class="card hidden" id="formSection">
-    <h2 id="headerTitle">LOGGED USER</h2>
-    <div id="listContainer">
-      </div>
-    <button class="btn-add" onclick="addNewRow()">+ Add Member</button>
-    <button class="btn-save" onclick="submitToSheet()">Save to Database</button>
-  </div>
+<div class="card hidden" id="formDiv">
+  <h2 id="userTitle"></h2>
+  <div id="list"></div>
+  <button class="btn-add" onclick="addRow()">+ Add Row</button>
+  <button class="btn-save" onclick="save()">Save to Database</button>
 </div>
 
 <script>
-  const validUsers = { 
-    "John":"1111", "Adam":"2222", "James":"3333", 
-    "Rose":"4444", "Lily":"5555", "Lucy":"6666", "Nick":"7777" 
-  };
-  
-  let activeUser = "";
-  let rowCount = 0;
+  const users = {"John":"1111","Adam":"2222","James":"3333","Rose":"4444","Lily":"5555","Lucy":"6666","Nick":"7777"};
+  let user = "";
+  let count = 0;
 
-  function handleLogin() {
-    const u = document.getElementById('userInp').value.trim();
-    const p = document.getElementById('passInp').value.trim();
-
-    if (validUsers[u] && validUsers[u] === p) {
-      activeUser = u;
-      document.getElementById('loginSection').classList.add('hidden');
-      document.getElementById('formSection').classList.remove('hidden');
-      document.getElementById('headerTitle').innerText = activeUser.toUpperCase();
-      addNewRow();
-    } else {
-      alert("Access Denied: Incorrect credentials");
-    }
+  function doLogin() {
+    let name = document.getElementById('u').value;
+    let pass = document.getElementById('p').value;
+    if(users[name] && users[name] === pass) {
+      user = name;
+      document.getElementById('loginDiv').classList.add('hidden');
+      document.getElementById('formDiv').classList.remove('hidden');
+      document.getElementById('userTitle').innerText = user.toUpperCase();
+      addRow();
+    } else { alert("Wrong Login"); }
   }
 
-  function addNewRow() {
-    rowCount++;
-    const container = document.getElementById('listContainer');
-    const div = document.createElement('div');
-    div.className = 'row-card';
-    div.innerHTML = `
-      <div class="row-header">SL NO: ${rowCount}</div>
-      <div class="input-group">
-        <input type="text" class="m-name" placeholder="Member Name">
-        <input type="text" class="m-desig" placeholder="Designation">
-      </div>
-    `;
-    container.appendChild(div);
-    // Auto-scroll to bottom
-    window.scrollTo(0, document.body.scrollHeight);
+  function addRow() {
+    count++;
+    let div = document.createElement('div');
+    div.className = 'row-box';
+    div.innerHTML = `<b>Sl: ${count}</b><input type="text" class="n" placeholder="Name"><input type="text" class="d" placeholder="Designation">`;
+    document.getElementById('list').appendChild(div);
   }
 
-  function submitToSheet() {
-    const names = document.querySelectorAll('.m-name');
-    const desigs = document.querySelectorAll('.m-desig');
-    const submissionData = { currentUser: activeUser, members: [] };
-
-    names.forEach((el, i) => {
-      if (el.value.trim() !== "") {
-        submissionData.members.push({
-          sl: i + 1,
-          name: el.value.trim(),
-          designation: desigs[i].value.trim()
-        });
-      }
+  function save() {
+    let names = document.querySelectorAll('.n');
+    let desigs = document.querySelectorAll('.d');
+    let rows = [];
+    
+    names.forEach((item, i) => {
+      if(item.value) rows.push({sl: i+1, name: item.value, designation: desigs[i].value});
     });
 
-    if (submissionData.members.length === 0) {
-      alert("Please enter at least one name.");
-      return;
-    }
+    if(rows.length === 0) return alert("Enter at least one name");
 
-    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('overlay').style.display = "flex";
 
-    // Call Google Apps Script Backend
+    // CALLING THE BACKEND
     google.script.run
-      .withSuccessHandler(response => {
-        document.getElementById('loading').style.display = 'none';
-        alert(response);
-        location.reload(); 
+      .withSuccessHandler(msg => {
+        document.getElementById('overlay').style.display = "none";
+        alert(msg);
+        location.reload();
       })
       .withFailureHandler(err => {
-        document.getElementById('loading').style.display = 'none';
-        alert("Error: " + err.message);
+        document.getElementById('overlay').style.display = "none";
+        alert("CRITICAL ERROR: " + err.message);
       })
-      .processData(submissionData);
+      .processData({currentUser: user, members: rows});
   }
 </script>
-
 </body>
 </html>
